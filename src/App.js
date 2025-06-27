@@ -8,10 +8,12 @@ import Billing from "./pages/Billing";
 import Admin from "./pages/Admin";
 import Footer from "./components/Footer";
 
+
 function App() {
   return (
  <div>
 <Navbar />
+ 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/patients" element={<Patients />} />

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
+import { FaUserPlus, FaEdit, FaTrashAlt, FaUsers } from "react-icons/fa";
 
 const Patients = () => {
   const [patients, setPatients] = useState([]);
@@ -58,30 +59,37 @@ const Patients = () => {
   };
 
   return (
-    <motion.div className="p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <h2 className="text-2xl font-semibold mb-4 text-blue-800">Patient Management</h2>
+    <motion.div className="p-6 bg-blue-50 min-h-screen" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <div className="text-center mb-10">
+        <FaUsers size={40} className="mx-auto text-blue-700 mb-2" />
+        <h2 className="text-3xl font-bold text-blue-800">Patient Management</h2>
+      </div>
 
-      <div className="bg-white p-4 rounded shadow mb-6">
-        <h3 className="text-lg font-medium mb-2">
-          {editingId ? "Edit Patient" : "Register New Patient"}
-        </h3>
+      {/* Form */}
+      <div className="bg-white p-6 rounded-xl shadow mb-10">
+        <div className="flex items-center gap-2 mb-4 text-blue-700">
+          <FaUserPlus size={22} />
+          <h3 className="text-xl font-semibold">
+            {editingId ? "Edit Patient Details" : "Register New Patient"}
+          </h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input
             type="text"
             placeholder="Full Name"
-            className="border p-2 rounded"
+            className="border p-3 rounded-md focus:ring-2 focus:ring-blue-400"
             value={newPatient.name}
             onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })}
           />
           <input
             type="number"
             placeholder="Age"
-            className="border p-2 rounded"
+            className="border p-3 rounded-md focus:ring-2 focus:ring-blue-400"
             value={newPatient.age}
             onChange={(e) => setNewPatient({ ...newPatient, age: e.target.value })}
           />
           <select
-            className="border p-2 rounded"
+            className="border p-3 rounded-md focus:ring-2 focus:ring-blue-400"
             value={newPatient.gender}
             onChange={(e) => setNewPatient({ ...newPatient, gender: e.target.value })}
           >
@@ -93,69 +101,80 @@ const Patients = () => {
           <input
             type="text"
             placeholder="Contact No."
-            className="border p-2 rounded"
+            className="border p-3 rounded-md focus:ring-2 focus:ring-blue-400"
             value={newPatient.contact}
             onChange={(e) => setNewPatient({ ...newPatient, contact: e.target.value })}
           />
           <input
             type="text"
-            placeholder="Insurance Info"
-            className="border p-2 rounded"
+            placeholder="Insurance Details"
+            className="border p-3 rounded-md focus:ring-2 focus:ring-blue-400"
             value={newPatient.insurance}
             onChange={(e) => setNewPatient({ ...newPatient, insurance: e.target.value })}
           />
         </div>
         <button
           onClick={handleAddOrUpdate}
-          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          className="mt-6 bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition"
         >
           {editingId ? "Update Patient" : "Register Patient"}
         </button>
       </div>
 
-      <div>
-        <h3 className="text-lg font-medium mb-2">Registered Patients</h3>
-        <table className="w-full border text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border px-2 py-1">Name</th>
-              <th className="border px-2 py-1">Age</th>
-              <th className="border px-2 py-1">Gender</th>
-              <th className="border px-2 py-1">Contact</th>
-              <th className="border px-2 py-1">Insurance</th>
-              <th className="border px-2 py-1">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {patients.map((patient) => (
-              <tr key={patient._id} className="hover:bg-gray-50">
-                <td className="border px-2 py-1">{patient.name}</td>
-                <td className="border px-2 py-1">{patient.age}</td>
-                <td className="border px-2 py-1">{patient.gender}</td>
-                <td className="border px-2 py-1">{patient.contact}</td>
-                <td className="border px-2 py-1">{patient.insurance}</td>
-                <td className="border px-2 py-1 space-x-2">
-                  <button
-                    onClick={() => handleEdit(patient._id)}
-                    className="text-blue-500 hover:underline"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(patient._id)}
-                    className="text-red-500 hover:underline"
-                  >
-                    Delete
-                  </button>
-                </td>
+      {/* Table */}
+      <div className="bg-white p-6 rounded-xl shadow">
+        <h3 className="text-xl font-semibold text-blue-700 mb-4">Registered Patients</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border text-sm text-left">
+            <thead className="bg-blue-100 text-blue-800 font-medium">
+              <tr>
+                <th className="py-3 px-4 border-b">Name</th>
+                <th className="py-3 px-4 border-b">Age</th>
+                <th className="py-3 px-4 border-b">Gender</th>
+                <th className="py-3 px-4 border-b">Contact</th>
+                <th className="py-3 px-4 border-b">Insurance</th>
+                <th className="py-3 px-4 border-b text-center">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {patients.map((patient) => (
+                <tr key={patient._id} className="hover:bg-blue-50 transition">
+                  <td className="px-4 py-2 border-b">{patient.name}</td>
+                  <td className="px-4 py-2 border-b">{patient.age}</td>
+                  <td className="px-4 py-2 border-b">{patient.gender}</td>
+                  <td className="px-4 py-2 border-b">{patient.contact}</td>
+                  <td className="px-4 py-2 border-b">{patient.insurance}</td>
+                  <td className="px-4 py-2 border-b text-center space-x-3">
+                    <button
+                      onClick={() => handleEdit(patient._id)}
+                      className="text-blue-600 hover:text-blue-800"
+                      title="Edit"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(patient._id)}
+                      className="text-red-600 hover:text-red-800"
+                      title="Delete"
+                    >
+                      <FaTrashAlt />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {patients.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="text-center text-gray-500 py-4">
+                    No patients found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </motion.div>
   );
 };
 
 export default Patients;
-

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable"; // ✅ Correct for v5+
+import autoTable from "jspdf-autotable";
 import axios from "axios";
 
 const defaultServices = [
@@ -52,7 +52,6 @@ const Billing = () => {
     const patient = patients.find((p) => p._id === selectedPatientId);
     const date = new Date().toLocaleDateString();
 
-    // Header
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
     doc.text("MEDICARE MULTISPECIALITY HOSPITAL", 20, 20);
@@ -62,12 +61,10 @@ const Billing = () => {
     doc.text("Phone: +91-XXXXXXXXXX | Email: billing@medicare.in", 20, 31);
     doc.line(20, 35, 190, 35);
 
-    // Invoice Title
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("INVOICE", 20, 45);
 
-    // Patient Info
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
     doc.text(`Patient Name: ${patient?.name || "N/A"}`, 20, 55);
@@ -78,9 +75,7 @@ const Billing = () => {
     doc.text(`Date: ${date}`, 120, 69);
     doc.line(20, 74, 190, 74);
 
-    // Services Table
     const tableData = selectedServices.map((s, i) => [i + 1, s.name, `Rs. ${s.price}`]);
-
     autoTable(doc, {
       startY: 80,
       head: [["S.No", "Service", "Price"]],
@@ -91,8 +86,6 @@ const Billing = () => {
     });
 
     const summaryY = doc.lastAutoTable.finalY + 10;
-
-    // Bill Summary
     doc.setFontSize(11);
     doc.text(`Subtotal: Rs. ${subtotal}`, 140, summaryY);
     doc.text(`Tax (${taxRate}%): ${tax.toFixed(2)}`, 140, summaryY + 8);
@@ -101,7 +94,6 @@ const Billing = () => {
     doc.setFont("helvetica", "bold");
     doc.text(`Total Amount: Rs. ${total.toFixed(2)}`, 140, summaryY + 35);
 
-    // Signature & Footer
     doc.setFont("helvetica", "normal");
     doc.text("Authorized Signature: ___________________", 20, summaryY + 45);
     doc.setFontSize(10);
@@ -109,7 +101,6 @@ const Billing = () => {
 
     doc.save("invoice.pdf");
 
-    // Save to backend
     axios.post("http://localhost:5000/api/bills", {
       patientId: selectedPatientId,
       services: selectedServices,
@@ -122,14 +113,14 @@ const Billing = () => {
   };
 
   return (
-    <motion.div className="p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <h2 className="text-2xl font-semibold mb-4 text-blue-800">Bill Generator</h2>
+    <motion.div className="p-6 bg-blue-50 min-h-screen" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <h2 className="text-3xl font-bold mb-6 text-blue-800 text-center">💊 Medical Bill Generator</h2>
 
-      {/* Patient Select */}
-      <div className="bg-white p-4 rounded shadow mb-6">
-        <label className="block mb-2 font-medium">Select Patient</label>
+      {/* Patient Selection */}
+      <div className="bg-white p-6 rounded-xl shadow-md mb-8">
+        <label className="block mb-2 font-semibold text-blue-800">Select Patient</label>
         <select
-          className="border p-2 rounded w-full"
+          className="border border-gray-300 p-3 rounded w-full focus:ring-2 focus:ring-blue-500"
           value={selectedPatientId}
           onChange={(e) => setSelectedPatientId(e.target.value)}
         >
@@ -142,73 +133,73 @@ const Billing = () => {
         </select>
       </div>
 
-      {/* Service Select */}
-      <div className="bg-white p-4 rounded shadow mb-6">
-        <h3 className="text-lg font-semibold mb-2">Select Services</h3>
+      {/* Service Selection */}
+      <div className="bg-white p-6 rounded-xl shadow-md mb-8">
+        <h3 className="text-xl font-semibold text-blue-800 mb-4">Select Services</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {services.map((service) => (
             <label
               key={service._id}
-              className="flex items-center border p-2 rounded cursor-pointer hover:bg-blue-50"
+              className="flex items-center border p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition"
             >
               <input
                 type="checkbox"
                 checked={selectedServices.some((s) => s._id === service._id)}
                 onChange={() => handleServiceToggle(service)}
-                className="mr-2"
+                className="mr-3 accent-blue-600"
               />
-              {service.name} (₹{service.price})
+              <span className="text-gray-700 font-medium">{service.name} (₹{service.price})</span>
             </label>
           ))}
         </div>
       </div>
 
       {/* Adjustments */}
-      <div className="bg-white p-4 rounded shadow mb-6">
-        <h3 className="text-lg font-semibold mb-2">Adjustments</h3>
+      <div className="bg-white p-6 rounded-xl shadow-md mb-8">
+        <h3 className="text-xl font-semibold text-blue-800 mb-4">Adjustments</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label>Tax Rate (%)</label>
+            <label className="block mb-1 text-gray-600">Tax Rate (%)</label>
             <input
               type="number"
               value={taxRate}
               onChange={(e) => setTaxRate(parseFloat(e.target.value))}
-              className="border p-2 w-full rounded"
+              className="border p-3 w-full rounded focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label>Discount (₹)</label>
+            <label className="block mb-1 text-gray-600">Discount (₹)</label>
             <input
               type="number"
               value={discount}
               onChange={(e) => setDiscount(parseFloat(e.target.value))}
-              className="border p-2 w-full rounded"
+              className="border p-3 w-full rounded focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label>Insurance (₹)</label>
+            <label className="block mb-1 text-gray-600">Insurance (₹)</label>
             <input
               type="number"
               value={insurance}
               onChange={(e) => setInsurance(parseFloat(e.target.value))}
-              className="border p-2 w-full rounded"
+              className="border p-3 w-full rounded focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
       </div>
 
-      {/* Summary */}
-      <div className="bg-white p-4 rounded shadow mb-6 text-right">
-        <p className="mb-1">Subtotal: ₹{subtotal}</p>
-        <p className="mb-1">Tax ({taxRate}%): ₹{tax.toFixed(2)}</p>
-        <p className="mb-1">Discount: ₹{discount}</p>
-        <p className="mb-1">Insurance: ₹{insurance}</p>
-        <h4 className="text-xl font-bold mt-2">Total: ₹{total.toFixed(2)}</h4>
+      {/* Summary & PDF Button */}
+      <div className="bg-white p-6 rounded-xl shadow-md text-right">
+        <p className="mb-1 text-gray-700">Subtotal: ₹{subtotal}</p>
+        <p className="mb-1 text-gray-700">Tax ({taxRate}%): ₹{tax.toFixed(2)}</p>
+        <p className="mb-1 text-gray-700">Discount: ₹{discount}</p>
+        <p className="mb-1 text-gray-700">Insurance: ₹{insurance}</p>
+        <h4 className="text-2xl font-bold text-blue-800 mt-3">Total: ₹{total.toFixed(2)}</h4>
         <button
           onClick={generatePDF}
-          className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+          className="mt-6 bg-blue-700 text-white px-8 py-3 rounded-lg shadow-md hover:bg-blue-800 transition"
         >
-          Download Invoice PDF
+          📄 Download Invoice PDF
         </button>
       </div>
     </motion.div>

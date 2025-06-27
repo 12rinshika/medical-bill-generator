@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
+import { FaTools, FaPlusCircle, FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
 
 const Services = () => {
   const [services, setServices] = useState([]);
@@ -63,131 +64,150 @@ const Services = () => {
   };
 
   return (
-    <motion.div className="p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <h2 className="text-2xl font-semibold mb-4 text-blue-800">Service Management</h2>
+    <motion.div className="p-6 bg-blue-50 min-h-screen" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <div className="text-center mb-10">
+        <FaTools size={40} className="mx-auto text-blue-700 mb-2" />
+        <h2 className="text-3xl font-bold text-blue-800">Service Management</h2>
+      </div>
 
       {/* Add Service */}
-      <div className="bg-white p-4 rounded shadow">
-        <h3 className="text-lg font-medium mb-2">Add New Service</h3>
+      <div className="bg-white p-6 rounded-xl shadow mb-10">
+        <div className="flex items-center gap-2 text-blue-700 mb-4">
+          <FaPlusCircle />
+          <h3 className="text-xl font-semibold">Add New Service</h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input
             type="text"
             placeholder="Service Name"
-            className="border p-2 rounded"
+            className="border p-3 rounded-md focus:ring-2 focus:ring-blue-400"
             value={newService.name}
             onChange={(e) => setNewService({ ...newService, name: e.target.value })}
           />
           <input
             type="text"
             placeholder="Category"
-            className="border p-2 rounded"
+            className="border p-3 rounded-md focus:ring-2 focus:ring-blue-400"
             value={newService.category}
             onChange={(e) => setNewService({ ...newService, category: e.target.value })}
           />
           <input
             type="number"
             placeholder="Price (₹)"
-            className="border p-2 rounded"
+            className="border p-3 rounded-md focus:ring-2 focus:ring-blue-400"
             value={newService.price}
             onChange={(e) => setNewService({ ...newService, price: e.target.value })}
           />
         </div>
         <button
           onClick={handleAdd}
-          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          className="mt-6 bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition"
         >
           Add Service
         </button>
       </div>
 
-      {/* List of Services */}
-      <div className="mt-6">
-        <h3 className="text-lg font-medium mb-2">Available Services</h3>
-        <table className="w-full border text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border px-2 py-1">Name</th>
-              <th className="border px-2 py-1">Category</th>
-              <th className="border px-2 py-1">Price (₹)</th>
-              <th className="border px-2 py-1">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {services.map((service) => (
-              <tr key={service._id} className="hover:bg-gray-50">
-                <td className="border px-2 py-1">
-                  {editId === service._id ? (
-                    <input
-                      type="text"
-                      className="border p-1 rounded w-full"
-                      value={editData.name}
-                      onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                    />
-                  ) : (
-                    service.name
-                  )}
-                </td>
-                <td className="border px-2 py-1">
-                  {editId === service._id ? (
-                    <input
-                      type="text"
-                      className="border p-1 rounded w-full"
-                      value={editData.category}
-                      onChange={(e) => setEditData({ ...editData, category: e.target.value })}
-                    />
-                  ) : (
-                    service.category
-                  )}
-                </td>
-                <td className="border px-2 py-1">
-                  {editId === service._id ? (
-                    <input
-                      type="number"
-                      className="border p-1 rounded w-full"
-                      value={editData.price}
-                      onChange={(e) => setEditData({ ...editData, price: e.target.value })}
-                    />
-                  ) : (
-                    `₹${service.price}`
-                  )}
-                </td>
-                <td className="border px-2 py-1 flex gap-2">
-                  {editId === service._id ? (
-                    <>
-                      <button
-                        onClick={() => handleEditSave(service._id)}
-                        className="text-green-600 hover:underline"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => setEditId(null)}
-                        className="text-gray-500 hover:underline"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => handleEdit(service)}
-                        className="text-blue-600 hover:underline"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(service._id)}
-                        className="text-red-500 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    </>
-                  )}
-                </td>
+      {/* Services Table */}
+      <div className="bg-white p-6 rounded-xl shadow">
+        <h3 className="text-xl font-semibold text-blue-700 mb-4">Available Services</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border text-sm text-left">
+            <thead className="bg-blue-100 text-blue-800 font-medium">
+              <tr>
+                <th className="py-3 px-4 border-b">Name</th>
+                <th className="py-3 px-4 border-b">Category</th>
+                <th className="py-3 px-4 border-b">Price (₹)</th>
+                <th className="py-3 px-4 border-b text-center">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {services.map((service) => (
+                <tr key={service._id} className="hover:bg-blue-50 transition">
+                  <td className="px-4 py-2 border-b">
+                    {editId === service._id ? (
+                      <input
+                        type="text"
+                        className="border p-1 rounded w-full"
+                        value={editData.name}
+                        onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                      />
+                    ) : (
+                      service.name
+                    )}
+                  </td>
+                  <td className="px-4 py-2 border-b">
+                    {editId === service._id ? (
+                      <input
+                        type="text"
+                        className="border p-1 rounded w-full"
+                        value={editData.category}
+                        onChange={(e) => setEditData({ ...editData, category: e.target.value })}
+                      />
+                    ) : (
+                      service.category
+                    )}
+                  </td>
+                  <td className="px-4 py-2 border-b">
+                    {editId === service._id ? (
+                      <input
+                        type="number"
+                        className="border p-1 rounded w-full"
+                        value={editData.price}
+                        onChange={(e) => setEditData({ ...editData, price: e.target.value })}
+                      />
+                    ) : (
+                      `₹${service.price}`
+                    )}
+                  </td>
+                  <td className="px-4 py-2 border-b text-center space-x-2">
+                    {editId === service._id ? (
+                      <>
+                        <button
+                          onClick={() => handleEditSave(service._id)}
+                          className="text-green-600 hover:text-green-800"
+                          title="Save"
+                        >
+                          <FaSave />
+                        </button>
+                        <button
+                          onClick={() => setEditId(null)}
+                          className="text-gray-600 hover:text-gray-800"
+                          title="Cancel"
+                        >
+                          <FaTimes />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleEdit(service)}
+                          className="text-blue-600 hover:text-blue-800"
+                          title="Edit"
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(service._id)}
+                          className="text-red-600 hover:text-red-800"
+                          title="Delete"
+                        >
+                          <FaTrashAlt />
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {services.length === 0 && (
+                <tr>
+                  <td colSpan="4" className="text-center text-gray-500 py-4">
+                    No services found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </motion.div>
   );
