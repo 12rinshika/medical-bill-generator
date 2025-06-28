@@ -28,9 +28,21 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const bill = await Bill.findById(req.params.id).populate("patientId");
+    if (!bill) return res.status(404).json({ error: "Bill not found" });
     res.json(bill);
   } catch (err) {
-    res.status(404).json({ error: "Bill not found" });
+    res.status(500).json({ error: "Error fetching bill" });
+  }
+});
+
+// Delete a bill
+router.delete("/:id", async (req, res) => {
+  try {
+    const deleted = await Bill.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: "Bill not found" });
+    res.json({ message: "Bill deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Error deleting bill" });
   }
 });
 

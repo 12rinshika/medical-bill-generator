@@ -32,12 +32,10 @@ const Admin = () => {
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     if (!file.type.startsWith("image/")) {
       alert("Please upload a valid image file.");
       return;
     }
-
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64 = reader.result;
@@ -47,11 +45,13 @@ const Admin = () => {
   };
 
   const saveSettings = () => {
-    axios.put("http://localhost:5000/api/settings", {
-      taxRate,
-      defaultDiscount,
-      logoUrl: logo,
-    }).then(() => alert("Settings updated successfully"));
+    axios
+      .put("http://localhost:5000/api/settings", {
+        taxRate,
+        defaultDiscount,
+        logoUrl: logo,
+      })
+      .then(() => alert("Settings updated successfully"));
   };
 
   const deletePatient = async (id) => {
@@ -75,8 +75,8 @@ const Admin = () => {
   };
 
   return (
-    <motion.div className="p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="flex justify-between items-center mb-4">
+    <motion.div className="p-4 md:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
         <h2 className="text-2xl font-semibold">Admin Panel</h2>
         <button
           onClick={() => {
@@ -90,110 +90,153 @@ const Admin = () => {
       </div>
 
       <div className="bg-white p-4 rounded shadow space-y-6">
-        <div>
-          <label className="font-medium">Default Tax Rate (%)</label>
-          <input type="number" value={taxRate} onChange={(e) => setTaxRate(Number(e.target.value))} className="border w-full p-2 rounded mt-1" />
+        {/* Settings */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="font-medium">Default Tax Rate (%)</label>
+            <input
+              type="number"
+              value={taxRate}
+              onChange={(e) => setTaxRate(Number(e.target.value))}
+              className="border w-full p-2 rounded mt-1"
+            />
+          </div>
+          <div>
+            <label className="font-medium">Default Discount (₹)</label>
+            <input
+              type="number"
+              value={defaultDiscount}
+              onChange={(e) => setDefaultDiscount(Number(e.target.value))}
+              className="border w-full p-2 rounded mt-1"
+            />
+          </div>
+          <div className="col-span-1 md:col-span-2">
+            <label className="font-medium">Upload Hospital Logo</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleLogoUpload}
+              className="w-full mt-1"
+            />
+            {logo && (
+              <img
+                src={logo}
+                alt="Logo Preview"
+                className="mt-3 h-20 w-auto object-contain border rounded"
+              />
+            )}
+          </div>
         </div>
-        <div>
-          <label className="font-medium">Default Discount (₹)</label>
-          <input type="number" value={defaultDiscount} onChange={(e) => setDefaultDiscount(Number(e.target.value))} className="border w-full p-2 rounded mt-1" />
-        </div>
-        <div>
-          <label className="font-medium">Upload Hospital Logo</label>
-          <input type="file" accept="image/*" onChange={handleLogoUpload} className="w-full mt-1" />
-          {logo && <img src={logo} alt="Logo Preview" className="mt-3 h-20 w-auto object-contain border rounded" />}
-        </div>
-        <button onClick={saveSettings} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+
+        <button
+          onClick={saveSettings}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
           Save Settings
         </button>
 
         {/* Patients */}
         <div>
           <h3 className="text-lg font-semibold mt-6">Manage Patients</h3>
-          <table className="min-w-full border text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border px-2 py-1">Name</th>
-                <th className="border px-2 py-1">Age</th>
-                <th className="border px-2 py-1">Gender</th>
-                <th className="border px-2 py-1">Contact</th>
-                <th className="border px-2 py-1">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {patients.map((p) => (
-                <tr key={p._id} className="hover:bg-gray-50">
-                  <td className="border px-2 py-1">{p.name}</td>
-                  <td className="border px-2 py-1">{p.age}</td>
-                  <td className="border px-2 py-1">{p.gender}</td>
-                  <td className="border px-2 py-1">{p.contact}</td>
-                  <td className="border px-2 py-1">
-                    <button onClick={() => deletePatient(p._id)} className="text-red-500 hover:underline">
-                      Delete
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="border px-2 py-1">Name</th>
+                  <th className="border px-2 py-1">Age</th>
+                  <th className="border px-2 py-1">Gender</th>
+                  <th className="border px-2 py-1">Contact</th>
+                  <th className="border px-2 py-1">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {patients.map((p) => (
+                  <tr key={p._id} className="hover:bg-gray-50">
+                    <td className="border px-2 py-1">{p.name}</td>
+                    <td className="border px-2 py-1">{p.age}</td>
+                    <td className="border px-2 py-1">{p.gender}</td>
+                    <td className="border px-2 py-1">{p.contact}</td>
+                    <td className="border px-2 py-1">
+                      <button
+                        onClick={() => deletePatient(p._id)}
+                        className="text-red-500 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Services */}
         <div>
           <h3 className="text-lg font-semibold mt-6">Manage Services</h3>
-          <table className="min-w-full border text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border px-2 py-1">Name</th>
-                <th className="border px-2 py-1">Category</th>
-                <th className="border px-2 py-1">Price</th>
-                <th className="border px-2 py-1">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {services.map((s) => (
-                <tr key={s._id} className="hover:bg-gray-50">
-                  <td className="border px-2 py-1">{s.name}</td>
-                  <td className="border px-2 py-1">{s.category}</td>
-                  <td className="border px-2 py-1">₹{s.price}</td>
-                  <td className="border px-2 py-1">
-                    <button onClick={() => deleteService(s._id)} className="text-red-500 hover:underline">
-                      Delete
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="border px-2 py-1">Name</th>
+                  <th className="border px-2 py-1">Category</th>
+                  <th className="border px-2 py-1">Price</th>
+                  <th className="border px-2 py-1">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {services.map((s) => (
+                  <tr key={s._id} className="hover:bg-gray-50">
+                    <td className="border px-2 py-1">{s.name}</td>
+                    <td className="border px-2 py-1">{s.category}</td>
+                    <td className="border px-2 py-1">₹{s.price}</td>
+                    <td className="border px-2 py-1">
+                      <button
+                        onClick={() => deleteService(s._id)}
+                        className="text-red-500 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Bills */}
         <div>
           <h3 className="text-lg font-semibold mt-6">Bills History</h3>
-          <table className="min-w-full border text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border px-2 py-1">Patient</th>
-                <th className="border px-2 py-1">Total (₹)</th>
-                <th className="border px-2 py-1">Date</th>
-                <th className="border px-2 py-1">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bills.map((b) => (
-                <tr key={b._id} className="hover:bg-gray-50">
-                  <td className="border px-2 py-1">{getPatientName(b.patientId)}</td>
-                  <td className="border px-2 py-1">₹{b.total}</td>
-                  <td className="border px-2 py-1">{new Date(b.date).toLocaleDateString()}</td>
-                  <td className="border px-2 py-1">
-                    <button onClick={() => deleteBill(b._id)} className="text-red-500 hover:underline">
-                      Delete
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="border px-2 py-1">Patient</th>
+                  <th className="border px-2 py-1">Total (₹)</th>
+                  <th className="border px-2 py-1">Date</th>
+                  <th className="border px-2 py-1">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {bills.map((b) => (
+                  <tr key={b._id} className="hover:bg-gray-50">
+                    <td className="border px-2 py-1">{getPatientName(b.patientId)}</td>
+                    <td className="border px-2 py-1">₹{b.total}</td>
+                    <td className="border px-2 py-1">{new Date(b.date).toLocaleDateString()}</td>
+                    <td className="border px-2 py-1">
+                      <button
+                        onClick={() => deleteBill(b._id)}
+                        className="text-red-500 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </motion.div>
