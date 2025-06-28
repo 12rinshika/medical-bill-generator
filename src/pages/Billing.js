@@ -3,6 +3,14 @@ import { motion } from "framer-motion";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import axios from "axios";
+import {
+  FaUserInjured,
+  FaStethoscope,
+  FaPercentage,
+  FaFileInvoiceDollar,
+  FaCheckCircle,
+  FaDownload,
+} from "react-icons/fa";
 
 const defaultServices = [
   { _id: "1", name: "Consultation", price: 500 },
@@ -32,6 +40,10 @@ const Billing = () => {
       });
       setServices(allServices);
     });
+    axios.get("http://localhost:5000/api/settings").then((res) => {
+      setTaxRate(res.data.taxRate);
+      setDiscount(res.data.defaultDiscount);
+    });
   }, []);
 
   const handleServiceToggle = (service) => {
@@ -47,37 +59,74 @@ const Billing = () => {
   const tax = (subtotal * taxRate) / 100;
   const total = subtotal + tax - discount - insurance;
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
     const doc = new jsPDF();
     const patient = patients.find((p) => p._id === selectedPatientId);
     const date = new Date().toLocaleDateString();
 
+    if (!patient) {
+      alert("Please select a valid patient.");
+      return;
+    }
+
+    try {
+      const settingsRes = await axios.get("http://localhost:5000/api/settings");
+      const latestLogo = settingsRes.data.logoUrl;
+      const renderPDFContent = () => generatePDFContent(doc, patient, date, latestLogo);
+
+      if (latestLogo && latestLogo.startsWith("data:image/")) {
+        const img = new Image();
+        img.src = latestLogo;
+        img.onload = () => {
+          try {
+            doc.addImage(img, "PNG", 150, 10, 40, 20);
+            renderPDFContent();
+          } catch (err) {
+            console.error("Error adding logo:", err);
+            renderPDFContent();
+          }
+        };
+        img.onerror = () => {
+          console.error("Logo load failed");
+          renderPDFContent();
+        };
+      } else {
+        renderPDFContent();
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      alert("Failed to fetch updated settings.");
+    }
+  };
+
+  const generatePDFContent = (doc, patient, date, logo) => {
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
-    doc.text("MEDICARE MULTISPECIALITY HOSPITAL", 20, 20);
+    doc.text("MEDICARE MULTISPECIALITY HOSPITAL", 20, 40);
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text("123 Health Ave, Wellness City, India", 20, 26);
-    doc.text("Phone: +91-XXXXXXXXXX | Email: billing@medicare.in", 20, 31);
-    doc.line(20, 35, 190, 35);
+    doc.text("123 Health Ave, Wellness City, India", 20, 46);
+    doc.text("Phone: +91-XXXXXXXXXX | Email: billing@medicare.in", 20, 51);
+    doc.line(20, 55, 190, 55);
 
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("INVOICE", 20, 45);
+    doc.text("INVOICE", 20, 65);
 
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
-    doc.text(`Patient Name: ${patient?.name || "N/A"}`, 20, 55);
-    doc.text(`Age: ${patient?.age || "N/A"}`, 120, 55);
-    doc.text(`Gender: ${patient?.gender || "N/A"}`, 20, 62);
-    doc.text(`Contact: ${patient?.contact || "N/A"}`, 120, 62);
-    doc.text(`Insurance: ${patient?.insurance || "N/A"}`, 20, 69);
-    doc.text(`Date: ${date}`, 120, 69);
-    doc.line(20, 74, 190, 74);
+    doc.text(`Patient Name: ${patient.name || "N/A"}`, 20, 75);
+    doc.text(`Age: ${patient.age || "N/A"}`, 120, 75);
+    doc.text(`Gender: ${patient.gender || "N/A"}`, 20, 82);
+    doc.text(`Contact: ${patient.contact || "N/A"}`, 120, 82);
+    doc.text(`Insurance: ${patient.insurance || "N/A"}`, 20, 89);
+    doc.text(`Date: ${date}`, 120, 89);
+    doc.line(20, 93, 190, 93);
 
-    const tableData = selectedServices.map((s, i) => [i + 1, s.name, `Rs. ${s.price}`]);
+    const tableData = selectedServices.map((s, i) => [i + 1, s.name, `₹${s.price}`]);
+
     autoTable(doc, {
-      startY: 80,
+      startY: 98,
       head: [["S.No", "Service", "Price"]],
       body: tableData,
       theme: "grid",
@@ -88,7 +137,7 @@ const Billing = () => {
     const summaryY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(11);
     doc.text(`Subtotal: Rs. ${subtotal}`, 140, summaryY);
-    doc.text(`Tax (${taxRate}%): ${tax.toFixed(2)}`, 140, summaryY + 8);
+    doc.text(`Tax (${taxRate}%): Rs. ${tax.toFixed(2)}`, 140, summaryY + 8);
     doc.text(`Discount: Rs. ${discount}`, 140, summaryY + 16);
     doc.text(`Insurance Covered: Rs. ${insurance}`, 140, summaryY + 24);
     doc.setFont("helvetica", "bold");
@@ -113,14 +162,17 @@ const Billing = () => {
   };
 
   return (
-    <motion.div className="p-6 bg-blue-50 min-h-screen" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <h2 className="text-3xl font-bold mb-6 text-blue-800 text-center">💊 Medical Bill Generator</h2>
+    <motion.div className="p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <h2 className="text-2xl font-semibold mb-4 text-blue-800 flex items-center gap-2">
+        <FaFileInvoiceDollar /> Bill Generator
+      </h2>
 
-      {/* Patient Selection */}
-      <div className="bg-white p-6 rounded-xl shadow-md mb-8">
-        <label className="block mb-2 font-semibold text-blue-800">Select Patient</label>
+      <div className="bg-white p-4 rounded shadow mb-6">
+        <label className="block mb-2 font-medium flex items-center gap-2 text-gray-700">
+          <FaUserInjured /> Select Patient
+        </label>
         <select
-          className="border border-gray-300 p-3 rounded w-full focus:ring-2 focus:ring-blue-500"
+          className="border p-2 rounded w-full"
           value={selectedPatientId}
           onChange={(e) => setSelectedPatientId(e.target.value)}
         >
@@ -133,73 +185,76 @@ const Billing = () => {
         </select>
       </div>
 
-      {/* Service Selection */}
-      <div className="bg-white p-6 rounded-xl shadow-md mb-8">
-        <h3 className="text-xl font-semibold text-blue-800 mb-4">Select Services</h3>
+      <div className="bg-white p-4 rounded shadow mb-6">
+        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-gray-700">
+          <FaStethoscope /> Select Services
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {services.map((service) => (
             <label
               key={service._id}
-              className="flex items-center border p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition"
+              className="flex items-center border p-2 rounded cursor-pointer hover:bg-blue-50"
             >
               <input
                 type="checkbox"
                 checked={selectedServices.some((s) => s._id === service._id)}
                 onChange={() => handleServiceToggle(service)}
-                className="mr-3 accent-blue-600"
+                className="mr-2"
               />
-              <span className="text-gray-700 font-medium">{service.name} (₹{service.price})</span>
+              {service.name} (₹{service.price})
             </label>
           ))}
         </div>
       </div>
 
-      {/* Adjustments */}
-      <div className="bg-white p-6 rounded-xl shadow-md mb-8">
-        <h3 className="text-xl font-semibold text-blue-800 mb-4">Adjustments</h3>
+      <div className="bg-white p-4 rounded shadow mb-6">
+        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-gray-700">
+          <FaPercentage /> Adjustments
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block mb-1 text-gray-600">Tax Rate (%)</label>
+            <label>Tax Rate (%)</label>
             <input
               type="number"
               value={taxRate}
-              onChange={(e) => setTaxRate(parseFloat(e.target.value))}
-              className="border p-3 w-full rounded focus:ring-2 focus:ring-blue-500"
+              readOnly
+              className="border p-2 w-full rounded bg-gray-100 cursor-not-allowed"
             />
           </div>
           <div>
-            <label className="block mb-1 text-gray-600">Discount (₹)</label>
+            <label>Discount (₹)</label>
             <input
               type="number"
               value={discount}
-              onChange={(e) => setDiscount(parseFloat(e.target.value))}
-              className="border p-3 w-full rounded focus:ring-2 focus:ring-blue-500"
+              readOnly
+              className="border p-2 w-full rounded bg-gray-100 cursor-not-allowed"
             />
           </div>
           <div>
-            <label className="block mb-1 text-gray-600">Insurance (₹)</label>
+            <label>Insurance (₹)</label>
             <input
               type="number"
               value={insurance}
               onChange={(e) => setInsurance(parseFloat(e.target.value))}
-              className="border p-3 w-full rounded focus:ring-2 focus:ring-blue-500"
+              className="border p-2 w-full rounded"
             />
           </div>
         </div>
       </div>
 
-      {/* Summary & PDF Button */}
-      <div className="bg-white p-6 rounded-xl shadow-md text-right">
-        <p className="mb-1 text-gray-700">Subtotal: ₹{subtotal}</p>
-        <p className="mb-1 text-gray-700">Tax ({taxRate}%): ₹{tax.toFixed(2)}</p>
-        <p className="mb-1 text-gray-700">Discount: ₹{discount}</p>
-        <p className="mb-1 text-gray-700">Insurance: ₹{insurance}</p>
-        <h4 className="text-2xl font-bold text-blue-800 mt-3">Total: ₹{total.toFixed(2)}</h4>
+      <div className="bg-white p-4 rounded shadow mb-6 text-right">
+        <p className="mb-1">Subtotal: ₹{subtotal}</p>
+        <p className="mb-1">Tax ({taxRate}%): ₹{tax.toFixed(2)}</p>
+        <p className="mb-1">Discount: ₹{discount}</p>
+        <p className="mb-1">Insurance: ₹{insurance}</p>
+        <h4 className="text-xl font-bold mt-2 text-blue-800 flex items-center justify-end gap-2">
+          <FaCheckCircle /> Total: ₹{total.toFixed(2)}
+        </h4>
         <button
           onClick={generatePDF}
-          className="mt-6 bg-blue-700 text-white px-8 py-3 rounded-lg shadow-md hover:bg-blue-800 transition"
+          className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
         >
-          📄 Download Invoice PDF
+          <FaDownload /> Download Invoice PDF
         </button>
       </div>
     </motion.div>

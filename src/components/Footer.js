@@ -51,7 +51,7 @@ const Footer = () => {
           <ul className="space-y-3 text-gray-300 text-sm">
             <li className="flex items-center gap-3">
               <FaMapMarkerAlt className="text-lg" />
-              123 Health St, Lucknow, India
+              123 Health St, Ranchi, Jharkhand, India
             </li>
             <li className="flex items-center gap-3">
               <FaPhone className="text-lg" />

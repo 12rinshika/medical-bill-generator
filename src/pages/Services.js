@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { FaTools, FaPlusCircle, FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
+import { FaTools, FaPlusCircle, FaEdit, FaSave, FaTimes } from "react-icons/fa";
 
 const Services = () => {
   const [services, setServices] = useState([]);
@@ -20,7 +20,6 @@ const Services = () => {
 
   const handleAdd = async () => {
     if (!newService.name || !newService.price) return;
-
     try {
       const res = await axios.post("http://localhost:5000/api/services", {
         ...newService,
@@ -31,15 +30,6 @@ const Services = () => {
     } catch (error) {
       alert("Error adding service");
       console.error(error);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/services/${id}`);
-      setServices(services.filter((s) => s._id !== id));
-    } catch (error) {
-      alert("Error deleting service");
     }
   };
 
@@ -117,7 +107,7 @@ const Services = () => {
                 <th className="py-3 px-4 border-b">Name</th>
                 <th className="py-3 px-4 border-b">Category</th>
                 <th className="py-3 px-4 border-b">Price (₹)</th>
-                <th className="py-3 px-4 border-b text-center">Actions</th>
+                <th className="py-3 px-4 border-b text-center">Edit</th>
               </tr>
             </thead>
             <tbody>
@@ -178,22 +168,13 @@ const Services = () => {
                         </button>
                       </>
                     ) : (
-                      <>
-                        <button
-                          onClick={() => handleEdit(service)}
-                          className="text-blue-600 hover:text-blue-800"
-                          title="Edit"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(service._id)}
-                          className="text-red-600 hover:text-red-800"
-                          title="Delete"
-                        >
-                          <FaTrashAlt />
-                        </button>
-                      </>
+                      <button
+                        onClick={() => handleEdit(service)}
+                        className="text-blue-600 hover:text-blue-800"
+                        title="Edit"
+                      >
+                        <FaEdit />
+                      </button>
                     )}
                   </td>
                 </tr>

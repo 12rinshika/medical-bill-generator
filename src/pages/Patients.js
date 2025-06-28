@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { FaUserPlus, FaEdit, FaTrashAlt, FaUsers } from "react-icons/fa";
+import { FaUserPlus, FaEdit, FaUsers } from "react-icons/fa";
 
 const Patients = () => {
   const [patients, setPatients] = useState([]);
@@ -47,15 +47,6 @@ const Patients = () => {
     const patient = patients.find((p) => p._id === id);
     setNewPatient(patient);
     setEditingId(id);
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/patients/${id}`);
-      fetchPatients();
-    } catch (err) {
-      console.error("Error deleting patient", err);
-    }
   };
 
   return (
@@ -133,7 +124,7 @@ const Patients = () => {
                 <th className="py-3 px-4 border-b">Gender</th>
                 <th className="py-3 px-4 border-b">Contact</th>
                 <th className="py-3 px-4 border-b">Insurance</th>
-                <th className="py-3 px-4 border-b text-center">Actions</th>
+                <th className="py-3 px-4 border-b text-center">Edit</th>
               </tr>
             </thead>
             <tbody>
@@ -144,20 +135,13 @@ const Patients = () => {
                   <td className="px-4 py-2 border-b">{patient.gender}</td>
                   <td className="px-4 py-2 border-b">{patient.contact}</td>
                   <td className="px-4 py-2 border-b">{patient.insurance}</td>
-                  <td className="px-4 py-2 border-b text-center space-x-3">
+                  <td className="px-4 py-2 border-b text-center">
                     <button
                       onClick={() => handleEdit(patient._id)}
                       className="text-blue-600 hover:text-blue-800"
                       title="Edit"
                     >
                       <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(patient._id)}
-                      className="text-red-600 hover:text-red-800"
-                      title="Delete"
-                    >
-                      <FaTrashAlt />
                     </button>
                   </td>
                 </tr>

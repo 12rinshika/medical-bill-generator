@@ -1,193 +1,199 @@
-import React, { useState } from "react";
+// Admin.jsx
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaTrashAlt, FaUpload, FaUserCog, FaTools, FaFileInvoice } from "react-icons/fa";
+import axios from "axios";
 
 const Admin = () => {
   const [taxRate, setTaxRate] = useState(5);
   const [defaultDiscount, setDefaultDiscount] = useState(0);
   const [logo, setLogo] = useState(null);
+  const [patients, setPatients] = useState([]);
+  const [services, setServices] = useState([]);
+  const [bills, setBills] = useState([]);
+  const navigate = useNavigate();
 
-  const [patients, setPatients] = useState([
-    { name: "John Doe", age: 30, gender: "Male", contact: "1234567890" },
-    { name: "Jane Smith", age: 28, gender: "Female", contact: "9876543210" },
-  ]);
+  useEffect(() => {
+    const isLoggedIn = sessionStorage.getItem("isAdminLoggedIn");
+    if (!isLoggedIn) navigate("/login");
+  }, [navigate]);
 
-  const [services, setServices] = useState([
-    { name: "Consultation", category: "General", price: 500 },
-    { name: "X-Ray", category: "Radiology", price: 1000 },
-  ]);
-
-  const [bills, setBills] = useState([
-    { patient: "John Doe", total: 3000, date: "2024-06-22" },
-    { patient: "Jane Smith", total: 4500, date: "2024-06-20" },
-  ]);
+  useEffect(() => {
+    axios.get("http://localhost:5000/api/patients").then((res) => setPatients(res.data));
+    axios.get("http://localhost:5000/api/services").then((res) => setServices(res.data));
+    axios.get("http://localhost:5000/api/bills").then((res) => setBills(res.data));
+    axios.get("http://localhost:5000/api/settings").then((res) => {
+      setTaxRate(res.data.taxRate);
+      setDefaultDiscount(res.data.defaultDiscount);
+      setLogo(res.data.logoUrl);
+    });
+  }, []);
 
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
-    setLogo(URL.createObjectURL(file));
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please upload a valid image file.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result;
+      setLogo(base64);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const deletePatient = (index) => {
-    const updated = [...patients];
-    updated.splice(index, 1);
-    setPatients(updated);
+  const saveSettings = () => {
+    axios.put("http://localhost:5000/api/settings", {
+      taxRate,
+      defaultDiscount,
+      logoUrl: logo,
+    }).then(() => alert("Settings updated successfully"));
   };
 
-  const deleteService = (index) => {
-    const updated = [...services];
-    updated.splice(index, 1);
-    setServices(updated);
+  const deletePatient = async (id) => {
+    await axios.delete(`http://localhost:5000/api/patients/${id}`);
+    setPatients(patients.filter((p) => p._id !== id));
+  };
+
+  const deleteService = async (id) => {
+    await axios.delete(`http://localhost:5000/api/services/${id}`);
+    setServices(services.filter((s) => s._id !== id));
+  };
+
+  const deleteBill = async (id) => {
+    await axios.delete(`http://localhost:5000/api/bills/${id}`);
+    setBills(bills.filter((b) => b._id !== id));
+  };
+
+  const getPatientName = (id) => {
+    const p = patients.find((p) => p._id === id);
+    return p ? p.name : "Unknown";
   };
 
   return (
-    <motion.div className="p-6 bg-gray-50 min-h-screen" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="text-center mb-10">
-        <FaUserCog size={40} className="mx-auto text-blue-700 mb-2" />
-        <h2 className="text-3xl font-bold text-blue-800">Admin Panel</h2>
+    <motion.div className="p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-semibold">Admin Panel</h2>
+        <button
+          onClick={() => {
+            sessionStorage.removeItem("isAdminLoggedIn");
+            navigate("/login");
+          }}
+          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+        >
+          Logout
+        </button>
       </div>
 
-      <div className="bg-white p-6 rounded-xl shadow space-y-8">
-        {/* Settings */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="font-semibold text-gray-700">Default Tax Rate (%)</label>
-            <input
-              type="number"
-              value={taxRate}
-              onChange={(e) => setTaxRate(e.target.value)}
-              className="border w-full p-3 mt-2 rounded focus:ring-2 focus:ring-blue-300"
-            />
-          </div>
-
-          <div>
-            <label className="font-semibold text-gray-700">Default Discount (₹)</label>
-            <input
-              type="number"
-              value={defaultDiscount}
-              onChange={(e) => setDefaultDiscount(e.target.value)}
-              className="border w-full p-3 mt-2 rounded focus:ring-2 focus:ring-blue-300"
-            />
-          </div>
-        </div>
-
-        {/* Logo Upload */}
+      <div className="bg-white p-4 rounded shadow space-y-6">
         <div>
-          <label className="font-semibold text-gray-700 flex items-center gap-2">
-            <FaUpload className="text-blue-600" /> Upload Hospital Logo
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleLogoUpload}
-            className="w-full mt-2 p-2 border rounded"
-          />
-          {logo && <img src={logo} alt="Hospital Logo" className="mt-4 h-24 object-contain" />}
+          <label className="font-medium">Default Tax Rate (%)</label>
+          <input type="number" value={taxRate} onChange={(e) => setTaxRate(Number(e.target.value))} className="border w-full p-2 rounded mt-1" />
         </div>
-
-        {/* Patients Table */}
         <div>
-          <div className="flex items-center gap-2 text-blue-700 mb-2">
-            <FaUserCog />
-            <h3 className="text-xl font-semibold">Manage Patients</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full border text-sm">
-              <thead className="bg-gray-100 text-gray-700">
-                <tr>
-                  <th className="border px-3 py-2">Name</th>
-                  <th className="border px-3 py-2">Age</th>
-                  <th className="border px-3 py-2">Gender</th>
-                  <th className="border px-3 py-2">Contact</th>
-                  <th className="border px-3 py-2">Actions</th>
+          <label className="font-medium">Default Discount (₹)</label>
+          <input type="number" value={defaultDiscount} onChange={(e) => setDefaultDiscount(Number(e.target.value))} className="border w-full p-2 rounded mt-1" />
+        </div>
+        <div>
+          <label className="font-medium">Upload Hospital Logo</label>
+          <input type="file" accept="image/*" onChange={handleLogoUpload} className="w-full mt-1" />
+          {logo && <img src={logo} alt="Logo Preview" className="mt-3 h-20 w-auto object-contain border rounded" />}
+        </div>
+        <button onClick={saveSettings} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          Save Settings
+        </button>
+
+        {/* Patients */}
+        <div>
+          <h3 className="text-lg font-semibold mt-6">Manage Patients</h3>
+          <table className="min-w-full border text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-2 py-1">Name</th>
+                <th className="border px-2 py-1">Age</th>
+                <th className="border px-2 py-1">Gender</th>
+                <th className="border px-2 py-1">Contact</th>
+                <th className="border px-2 py-1">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {patients.map((p) => (
+                <tr key={p._id} className="hover:bg-gray-50">
+                  <td className="border px-2 py-1">{p.name}</td>
+                  <td className="border px-2 py-1">{p.age}</td>
+                  <td className="border px-2 py-1">{p.gender}</td>
+                  <td className="border px-2 py-1">{p.contact}</td>
+                  <td className="border px-2 py-1">
+                    <button onClick={() => deletePatient(p._id)} className="text-red-500 hover:underline">
+                      Delete
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {patients.map((p, i) => (
-                  <tr key={i} className="hover:bg-blue-50">
-                    <td className="border px-3 py-2">{p.name}</td>
-                    <td className="border px-3 py-2">{p.age}</td>
-                    <td className="border px-3 py-2">{p.gender}</td>
-                    <td className="border px-3 py-2">{p.contact}</td>
-                    <td className="border px-3 py-2 text-center">
-                      <button
-                        onClick={() => deletePatient(i)}
-                        className="text-red-600 hover:text-red-800 transition"
-                        title="Delete"
-                      >
-                        <FaTrashAlt />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        {/* Services Table */}
+        {/* Services */}
         <div>
-          <div className="flex items-center gap-2 text-blue-700 mb-2">
-            <FaTools />
-            <h3 className="text-xl font-semibold">Manage Services</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full border text-sm">
-              <thead className="bg-gray-100 text-gray-700">
-                <tr>
-                  <th className="border px-3 py-2">Name</th>
-                  <th className="border px-3 py-2">Category</th>
-                  <th className="border px-3 py-2">Price</th>
-                  <th className="border px-3 py-2">Actions</th>
+          <h3 className="text-lg font-semibold mt-6">Manage Services</h3>
+          <table className="min-w-full border text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-2 py-1">Name</th>
+                <th className="border px-2 py-1">Category</th>
+                <th className="border px-2 py-1">Price</th>
+                <th className="border px-2 py-1">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {services.map((s) => (
+                <tr key={s._id} className="hover:bg-gray-50">
+                  <td className="border px-2 py-1">{s.name}</td>
+                  <td className="border px-2 py-1">{s.category}</td>
+                  <td className="border px-2 py-1">₹{s.price}</td>
+                  <td className="border px-2 py-1">
+                    <button onClick={() => deleteService(s._id)} className="text-red-500 hover:underline">
+                      Delete
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {services.map((s, i) => (
-                  <tr key={i} className="hover:bg-blue-50">
-                    <td className="border px-3 py-2">{s.name}</td>
-                    <td className="border px-3 py-2">{s.category}</td>
-                    <td className="border px-3 py-2">₹{s.price}</td>
-                    <td className="border px-3 py-2 text-center">
-                      <button
-                        onClick={() => deleteService(i)}
-                        className="text-red-600 hover:text-red-800 transition"
-                        title="Delete"
-                      >
-                        <FaTrashAlt />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        {/* Bills Table */}
+        {/* Bills */}
         <div>
-          <div className="flex items-center gap-2 text-blue-700 mb-2">
-            <FaFileInvoice />
-            <h3 className="text-xl font-semibold">Bills History</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full border text-sm">
-              <thead className="bg-gray-100 text-gray-700">
-                <tr>
-                  <th className="border px-3 py-2">Patient</th>
-                  <th className="border px-3 py-2">Total (₹)</th>
-                  <th className="border px-3 py-2">Date</th>
+          <h3 className="text-lg font-semibold mt-6">Bills History</h3>
+          <table className="min-w-full border text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-2 py-1">Patient</th>
+                <th className="border px-2 py-1">Total (₹)</th>
+                <th className="border px-2 py-1">Date</th>
+                <th className="border px-2 py-1">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bills.map((b) => (
+                <tr key={b._id} className="hover:bg-gray-50">
+                  <td className="border px-2 py-1">{getPatientName(b.patientId)}</td>
+                  <td className="border px-2 py-1">₹{b.total}</td>
+                  <td className="border px-2 py-1">{new Date(b.date).toLocaleDateString()}</td>
+                  <td className="border px-2 py-1">
+                    <button onClick={() => deleteBill(b._id)} className="text-red-500 hover:underline">
+                      Delete
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {bills.map((b, i) => (
-                  <tr key={i} className="hover:bg-blue-50">
-                    <td className="border px-3 py-2">{b.patient}</td>
-                    <td className="border px-3 py-2">₹{b.total}</td>
-                    <td className="border px-3 py-2">{b.date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </motion.div>
