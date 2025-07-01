@@ -10,8 +10,9 @@ import {
   FaFileInvoiceDollar,
   FaCheckCircle,
   FaDownload,
-} from "react-icons/fa";
 
+} from "react-icons/fa";
+import { GiReceiveMoney } from "react-icons/gi";
 const defaultServices = [
   { _id: "1", name: "Consultation", price: 500 },
   { _id: "2", name: "Lab Tests", price: 1500 },
@@ -29,8 +30,8 @@ const Billing = () => {
   const [insurance, setInsurance] = useState(0);
 
   useEffect(() => {
-    axios.get("https://medical-bill-generator-2.onrender.com/api/patients").then((res) => setPatients(res.data));
-    axios.get("https://medical-bill-generator-2.onrender.com/api/services").then((res) => {
+    axios.get("http://localhost:5000/api/patients").then((res) => setPatients(res.data));
+    axios.get("http://localhost:5000/api/services").then((res) => {
       const backendServices = res.data;
       const allServices = [...defaultServices];
       backendServices.forEach((newSrv) => {
@@ -40,7 +41,7 @@ const Billing = () => {
       });
       setServices(allServices);
     });
-    axios.get("https://medical-bill-generator-2.onrender.com/api/settings").then((res) => {
+    axios.get("http://localhost:5000/api/settings").then((res) => {
       setTaxRate(res.data.taxRate);
       setDiscount(res.data.defaultDiscount);
     });
@@ -70,7 +71,7 @@ const Billing = () => {
     }
 
     try {
-      const settingsRes = await axios.get("https://medical-bill-generator-2.onrender.com/api/settings");
+      const settingsRes = await axios.get("http://localhost:5000/api/settings");
       const latestLogo = settingsRes.data.logoUrl;
       const renderPDFContent = () => generatePDFContent(doc, patient, date, latestLogo);
 
@@ -150,7 +151,7 @@ const Billing = () => {
 
     doc.save("invoice.pdf");
 
-    axios.post("https://medical-bill-generator-2.onrender.com/api/bills", {
+    axios.post("http://localhost:5000/api/bills", {
       patientId: selectedPatientId,
       services: selectedServices,
       subtotal,
@@ -162,7 +163,11 @@ const Billing = () => {
   };
 
   return (
-    <motion.div className="p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <motion.div className="p-6 bg-blue-50 min-h-screen" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <div className="text-center mb-10 mt-20">
+              <GiReceiveMoney size={40} className="mx-auto text-blue-700 mb-2" />
+              <h2 className="text-3xl font-bold text-blue-800">Billing Management</h2>
+            </div>
       <h2 className="text-2xl font-semibold mb-4 text-blue-800 flex items-center gap-2">
         <FaFileInvoiceDollar /> Bill Generator
       </h2>

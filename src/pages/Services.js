@@ -55,7 +55,7 @@ const Services = () => {
 
   return (
     <motion.div className="p-6 bg-blue-50 min-h-screen" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="text-center mb-10">
+      <div className="text-center mb-10 mt-20">
         <FaTools size={40} className="mx-auto text-blue-700 mb-2" />
         <h2 className="text-3xl font-bold text-blue-800">Service Management</h2>
       </div>
