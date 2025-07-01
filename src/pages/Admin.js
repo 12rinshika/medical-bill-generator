@@ -19,10 +19,10 @@ const Admin = () => {
   }, [navigate]);
 
   useEffect(() => {
-    axios.get("https://medical-bill-generator-2.onrender.com/api/patients").then((res) => setPatients(res.data));
-    axios.get("https://medical-bill-generator-2.onrender.com/api/services").then((res) => setServices(res.data));
-    axios.get("https://medical-bill-generator-2.onrender.com/api/bills").then((res) => setBills(res.data));
-    axios.get("https://medical-bill-generator-2.onrender.com/api/settings").then((res) => {
+    axios.get("http://localhost:5000/api/patients").then((res) => setPatients(res.data));
+    axios.get("http://localhost:5000/api/services").then((res) => setServices(res.data));
+    axios.get("http://localhost:5000/api/bills").then((res) => setBills(res.data));
+    axios.get("http://localhost:5000/api/settings").then((res) => {
       setTaxRate(res.data.taxRate);
       setDefaultDiscount(res.data.defaultDiscount);
       setLogo(res.data.logoUrl);

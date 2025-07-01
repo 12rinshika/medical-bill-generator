@@ -29,8 +29,8 @@ const Billing = () => {
   const [insurance, setInsurance] = useState(0);
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/patients").then((res) => setPatients(res.data));
-    axios.get("http://localhost:5000/api/services").then((res) => {
+    axios.get("https://medical-bill-generator-2.onrender.com/api/patients").then((res) => setPatients(res.data));
+    axios.get("https://medical-bill-generator-2.onrender.com/api/services").then((res) => {
       const backendServices = res.data;
       const allServices = [...defaultServices];
       backendServices.forEach((newSrv) => {
@@ -40,7 +40,7 @@ const Billing = () => {
       });
       setServices(allServices);
     });
-    axios.get("http://localhost:5000/api/settings").then((res) => {
+    axios.get("https://medical-bill-generator-2.onrender.com/api/settings").then((res) => {
       setTaxRate(res.data.taxRate);
       setDiscount(res.data.defaultDiscount);
     });
@@ -70,7 +70,7 @@ const Billing = () => {
     }
 
     try {
-      const settingsRes = await axios.get("http://localhost:5000/api/settings");
+      const settingsRes = await axios.get("https://medical-bill-generator-2.onrender.com/api/settings");
       const latestLogo = settingsRes.data.logoUrl;
       const renderPDFContent = () => generatePDFContent(doc, patient, date, latestLogo);
 
@@ -150,7 +150,7 @@ const Billing = () => {
 
     doc.save("invoice.pdf");
 
-    axios.post("http://localhost:5000/api/bills", {
+    axios.post("https://medical-bill-generator-2.onrender.com/api/bills", {
       patientId: selectedPatientId,
       services: selectedServices,
       subtotal,
